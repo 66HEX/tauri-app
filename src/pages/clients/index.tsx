@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 
 type Client = {
   id: number;
+  username: string;
   fullName: string;
   email: string;
   phone: string;
@@ -23,9 +24,9 @@ type Client = {
 };
 
 const initialClients: Client[] = [
-  { id: 1, fullName: 'Anna Smith', email: 'anna.smith@example.com', phone: '123-456-7890', status: 'active' },
-  { id: 2, fullName: 'John Miller', email: 'john.miller@example.com', phone: '987-654-3210', status: 'active' },
-  { id: 3, fullName: 'Mary Johnson', email: 'mary.johnson@example.com', phone: '555-555-5555', status: 'inactive' }
+  { id: 1, username: 'annasmith', fullName: 'Anna Smith', email: 'anna.smith@example.com', phone: '123-456-7890', status: 'active' },
+  { id: 2, username: 'jmiller', fullName: 'John Miller', email: 'john.miller@example.com', phone: '987-654-3210', status: 'active' },
+  { id: 3, username: 'maryjohn', fullName: 'Mary Johnson', email: 'mary.johnson@example.com', phone: '555-555-5555', status: 'inactive' }
 ];
 
 const ActionsCell = ({ row }: { row: any }) => {
@@ -66,8 +67,8 @@ export function ClientsPage() {
 
   const columns = useMemo<ColumnDef<Client>[]>(
     () => [
-
       { accessorKey: 'fullName', header: 'Full Name' },
+      { accessorKey: 'username', header: 'Username' },
       { accessorKey: 'email', header: 'Email' },
       { accessorKey: 'phone', header: 'Phone' },
       { 
@@ -106,7 +107,8 @@ export function ClientsPage() {
     
     return clients.filter(client => {
       const nameMatch = !nameFilter || 
-        client.fullName.toLowerCase().includes(nameFilter.toLowerCase());
+        client.fullName.toLowerCase().includes(nameFilter.toLowerCase()) ||
+        client.username.toLowerCase().includes(nameFilter.toLowerCase());
       
       // Only show clients with statuses that are checked
       const statusMatch = hasSelectedStatuses ? selectedStatuses[client.status] : false;
@@ -168,7 +170,7 @@ export function ClientsPage() {
                       placeholder="Search status..."
                       value={statusSearchInput}
                       onChange={(e) => setStatusSearchInput(e.target.value)}
-                      className="mb-2 h-8"
+                      className="h-8"
                     />
                   </div>
                   {filteredStatusOptions.map((status) => (

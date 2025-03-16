@@ -55,20 +55,6 @@ const data = {
       url: "/plans",
       icon: ClipboardList,
       isActive: false,
-      items: [
-        {
-          title: "Add New Plan",
-          url: "/plans/add",
-        },
-        {
-          title: "View All Plans",
-          url: "/plans/list",
-        },
-        {
-          title: "Archive",
-          url: "/plans/archive",
-        }
-      ],
     },
     {
       title: "Schedule",
