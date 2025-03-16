@@ -11,6 +11,7 @@ import {
   Calendar,
   MessageCircle,
 } from "lucide-react"
+import { Link } from '@tanstack/react-router'
 
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"

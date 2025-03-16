@@ -1,3 +1,4 @@
+import React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import {
@@ -9,12 +10,47 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { RouterProvider, Outlet, useLocation, Link } from '@tanstack/react-router'
+import { router } from "@/routes"
 
-export default function App() {
+function AppContent() {
+  const location = useLocation()
+  const pathname = location.pathname
+  
+  // Generate breadcrumb items based on the current path
+  const generateBreadcrumbs = () => {
+    // Skip empty segments and remove trailing slashes
+    const segments = pathname.split('/').filter(segment => segment !== '')
+    
+    // Create breadcrumb items for each segment
+    return segments.map((segment, index) => {
+      // Create the path for this breadcrumb item
+      const path = `/${segments.slice(0, index + 1).join('/')}`
+      
+      // Format the segment name to be more user-friendly
+      const formattedName = segment.charAt(0).toUpperCase() + segment.slice(1)
+      
+      // If this is the last segment, render it as the current page
+      const isLastSegment = index === segments.length - 1
+      
+      return (
+        <React.Fragment key={path}>
+          {index > 0 && <BreadcrumbSeparator />}
+          <BreadcrumbItem>
+            {isLastSegment ? (
+              <BreadcrumbPage>{formattedName}</BreadcrumbPage>
+            ) : (
+              <BreadcrumbLink asChild>
+                <Link to={path}>{formattedName}</Link>
+              </BreadcrumbLink>
+            )}
+          </BreadcrumbItem>
+        </React.Fragment>
+      )
+    })
+  }
+  
   return (
     <div>
       <SidebarProvider>
@@ -26,27 +62,38 @@ export default function App() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
+                  <BreadcrumbLink asChild>
+                    <Link to="/">Nexus App</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
+                {pathname !== '/' && (
+                  <>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    {generateBreadcrumbs()}
+                  </>
+                )}
+                {pathname === '/' && (
+                  <>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                )}
               </BreadcrumbList>
             </Breadcrumb>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-2 pt-0">
-            <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-              <div className="aspect-video rounded-xl bg-muted/50" />
-              <div className="aspect-video rounded-xl bg-muted/50" />
-              <div className="aspect-video rounded-xl bg-muted/50" />
-            </div>
-            <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+          <div className="flex flex-1 flex-col p-4">
+            <Outlet />
           </div>
         </SidebarInset>
       </SidebarProvider>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <RouterProvider router={router} defaultComponent={AppContent} />
   )
 }

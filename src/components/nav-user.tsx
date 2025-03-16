@@ -1,5 +1,7 @@
 "use client"
 
+import { Link } from '@tanstack/react-router';
+
 import {
   BadgeCheck,
   Bell,
@@ -81,25 +83,24 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
+              <Link to="/account">
+                <DropdownMenuItem>
+                  <BadgeCheck />
+                  Account
+                </DropdownMenuItem>
+              </Link>
+              <Link to="/billing">
+                <DropdownMenuItem>
+                  <CreditCard />
+                  Billing
+                </DropdownMenuItem>
+              </Link>
+              <Link to="/notifications">
+                <DropdownMenuItem>
+                  <Bell />
+                  Notifications
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
