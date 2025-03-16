@@ -1,9 +1,6 @@
 import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
 import { DashboardPage } from '@/pages/dashboard'
 import { ClientsPage } from '@/pages/clients'
-import { ClientsAddPage } from '@/pages/clients/add'
-import { ClientsListPage } from '@/pages/clients/list'
-import { ClientsArchivePage } from '@/pages/clients/archive'
 import { PlansPage } from '@/pages/plans'
 import { PlansAddPage } from '@/pages/plans/add'
 import { PlansListPage } from '@/pages/plans/list'
@@ -31,24 +28,6 @@ const clientsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/clients',
   component: ClientsPage,
-})
-
-const clientsAddRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/clients/add',
-  component: ClientsAddPage,
-})
-
-const clientsListRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/clients/list',
-  component: ClientsListPage,
-})
-
-const clientsArchiveRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/clients/archive',
-  component: ClientsArchivePage,
 })
 
 // Plans routes
@@ -129,9 +108,6 @@ const notificationsRoute = createRoute({
 export const routeTree = rootRoute.addChildren([
   dashboardRoute,
   clientsRoute,
-  clientsAddRoute,
-  clientsListRoute,
-  clientsArchiveRoute,
   plansRoute,
   plansAddRoute,
   plansListRoute,

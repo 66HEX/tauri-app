@@ -49,20 +49,6 @@ const data = {
       url: "/clients",
       icon: Users,
       isActive: false,
-      items: [
-        {
-          title: "Add New Client",
-          url: "/clients/add",
-        },
-        {
-          title: "View All Clients",
-          url: "/clients/list",
-        },
-        {
-          title: "Archive",
-          url: "/clients/archive",
-        }
-      ],
     },
     {
       title: "Plans",
