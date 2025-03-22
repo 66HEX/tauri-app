@@ -1,6 +1,4 @@
-"use client"
-
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 
 import {
   BadgeCheck,
@@ -8,7 +6,6 @@ import {
   ChevronsUpDown,
   CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react"
 
 import {
@@ -32,6 +29,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+import { logout } from "@/lib/api"
+
 export function NavUser({
   user,
 }: {
@@ -42,6 +41,12 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate({ to: "/login" })
+  }
 
   return (
     <SidebarMenu>
@@ -103,7 +108,7 @@ export function NavUser({
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>

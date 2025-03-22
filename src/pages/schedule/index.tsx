@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,29 +13,39 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ColumnDef, flexRender, getCoreRowModel, getFilteredRowModel, useReactTable } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { apiRequest, getCurrentUser, getClientAppointments, getTrainerAppointments } from '@/lib/api';
+import { Appointment, ApiAppointment, mapApiAppointmentToAppointment } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
-type Appointment = {
-  id: number;
-  clientName: string;
-  date: string;
-  time: string;
-  duration: string;
-  type: 'consultation' | 'training' | 'assessment' | 'check-in';
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
-  location: string;
-};
-
-const initialAppointments: Appointment[] = [
-  { id: 1, clientName: 'Anna Smith', date: '2025-03-17', time: '09:00', duration: '60 min', type: 'training', status: 'scheduled', location: 'Gym A' },
-  { id: 2, clientName: 'John Miller', date: '2025-03-17', time: '11:00', duration: '30 min', type: 'check-in', status: 'scheduled', location: 'Online' },
-  { id: 3, clientName: 'Sarah Johnson', date: '2025-03-16', time: '14:30', duration: '45 min', type: 'consultation', status: 'completed', location: 'Office' },
-  { id: 4, clientName: 'Robert Davis', date: '2025-03-18', time: '16:00', duration: '60 min', type: 'assessment', status: 'scheduled', location: 'Gym B' },
-  { id: 5, clientName: 'Emma Wilson', date: '2025-03-15', time: '10:00', duration: '60 min', type: 'training', status: 'cancelled', location: 'Gym A' },
-  { id: 6, clientName: 'Michael Brown', date: '2025-03-16', time: '13:00', duration: '60 min', type: 'training', status: 'no-show', location: 'Gym A' }
-];
+// Appointment type is now imported from types.ts
 
 const ActionsCell = ({ row }: { row: any }) => {
   const appointment = row.original;
+  const { toast } = useToast();
+  
+  // Function to update appointment status
+  const updateAppointmentStatus = async (status: string) => {
+    try {
+      await apiRequest(`/api/appointments/${appointment.id}`, 'PUT', { status });
+      
+      // Show success toast
+      toast({
+        title: 'Success',
+        description: `Appointment ${status === 'completed' ? 'marked as completed' : status === 'cancelled' ? 'cancelled' : 'marked as no-show'}.`,
+      });
+      
+      // Refresh appointments (this would trigger the useEffect)
+      window.location.reload();
+    } catch (error) {
+      console.error(`Failed to update appointment status:`, error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update appointment status. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -44,18 +54,33 @@ const ActionsCell = ({ row }: { row: any }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => alert(`Edit functionality would go here for ${appointment.clientName}'s appointment`)}>Edit</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => {
+          toast({
+            title: 'Info',
+            description: 'Edit functionality is not implemented yet.'
+          });
+        }}>Edit</DropdownMenuItem>
         {appointment.status === 'scheduled' && (
           <>
-            <DropdownMenuItem onClick={() => alert(`Reschedule functionality would go here for ${appointment.clientName}'s appointment`)}>Reschedule</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => alert(`Mark as Completed would go here for ${appointment.clientName}'s appointment`)}>Mark as Completed</DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600" onClick={() => alert(`Cancel functionality would go here for ${appointment.clientName}'s appointment`)}>Cancel</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {
+              toast({
+                title: 'Info',
+                description: 'Reschedule functionality is not implemented yet.'
+              });
+            }}>Reschedule</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => updateAppointmentStatus('completed')}>Mark as Completed</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600" onClick={() => updateAppointmentStatus('cancelled')}>Cancel</DropdownMenuItem>
           </>
         )}
         {appointment.status === 'scheduled' && (
-          <DropdownMenuItem className="text-amber-600" onClick={() => alert(`No-show functionality would go here for ${appointment.clientName}'s appointment`)}>Mark as No-show</DropdownMenuItem>
+          <DropdownMenuItem className="text-amber-600" onClick={() => updateAppointmentStatus('no-show')}>Mark as No-show</DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={() => alert(`Add Notes functionality would go here for ${appointment.clientName}'s appointment`)}>Add Notes</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => {
+          toast({
+            title: 'Info',
+            description: 'Add Notes functionality is not implemented yet.'
+          });
+        }}>Add Notes</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -94,7 +119,57 @@ const TypeCell = ({ value }: { value: string }) => {
 };
 
 export function SchedulePage() {
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  
+  // Fetch appointments from API
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        // Get current user and fetch appointments based on role
+        const user = getCurrentUser();
+        let response;
+        
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+        
+        if (user.role === 'client') {
+          response = await getClientAppointments();
+        } else if (user.role === 'trainer') {
+          response = await getTrainerAppointments();
+        } else if (user.role === 'admin') {
+          // Admins can see all appointments
+          response = await apiRequest('/api/appointments');
+        } else {
+          throw new Error('Unknown user role');
+        }
+        
+        // Map API appointments to UI appointments
+        const mappedAppointments = response.map((appointment: ApiAppointment) => 
+          mapApiAppointmentToAppointment(appointment)
+        );
+        
+        setAppointments(mappedAppointments);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch appointments:', err);
+        setError('Failed to load appointments. Please try again later.');
+        toast({
+          title: 'Error',
+          description: 'Failed to load appointments. Please try again later.',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAppointments();
+  }, [toast]);
   const [nameFilter, setNameFilter] = useState<string>('');
   const [selectedStatuses, setSelectedStatuses] = useState<Record<string, boolean>>({
     scheduled: true,
@@ -112,9 +187,33 @@ export function SchedulePage() {
   const [statusSearchInput, setStatusSearchInput] = useState<string>('');
   const [typeSearchInput, setTypeSearchInput] = useState<string>('');
 
+  // Get current user to determine which columns to show
+  const currentUser = useMemo(() => getCurrentUser(), []);
+  
+  // Initialize column visibility based on user role
+  useEffect(() => {
+    if (currentUser) {
+      setColumnVisibility({
+        clientName: currentUser.role !== 'client',
+        trainerName: currentUser.role !== 'trainer'
+      });
+    }
+  }, [currentUser]);
+  
   const columns = useMemo<ColumnDef<Appointment>[]>(
     () => [
-      { accessorKey: 'clientName', header: 'Client' },
+      { 
+        accessorKey: 'clientName', 
+        header: 'Client',
+        // Hide Client column for clients, show for trainers and admins
+        enableHiding: true
+      },
+      { 
+        accessorKey: 'trainerName', 
+        header: 'Trainer',
+        // Hide Trainer column for trainers, show for clients and admins
+        enableHiding: true
+      },
       { accessorKey: 'date', header: 'Date', 
         cell: ({ getValue }) => {
           const date = new Date(getValue() as string);
@@ -141,7 +240,7 @@ export function SchedulePage() {
         cell: ({ row }) => <ActionsCell row={row} />
       }
     ],
-    []
+    [currentUser?.role]
   );
 
   // Get unique status values for the dropdown
@@ -198,7 +297,13 @@ export function SchedulePage() {
       columnVisibility
     },
     onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel()
+    getCoreRowModel: getCoreRowModel(),
+    initialState: {
+      columnVisibility: {
+        clientName: currentUser?.role !== 'client',
+        trainerName: currentUser?.role !== 'trainer'
+      }
+    }
   });
 
   return (
@@ -333,38 +438,48 @@ export function SchedulePage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
+          {loading ? (
+            <div className="flex justify-center items-center h-24">
+              <p>Loading appointments...</p>
+            </div>
+          ) : error ? (
+            <div className="flex justify-center items-center h-24 text-red-500">
+              <p>{error}</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      No appointments found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

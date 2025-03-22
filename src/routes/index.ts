@@ -9,6 +9,8 @@ import { FeedbackPage } from '@/pages/feedback'
 import { AccountPage } from '@/pages/account'
 import { BillingPage } from '@/pages/billing'
 import { NotificationsPage } from '@/pages/notifications'
+import { LoginPage } from '@/pages/login'
+import { RegisterPage } from '@/pages/register'
 
 // Define the root route
 const rootRoute = createRootRoute()
@@ -83,6 +85,20 @@ const notificationsRoute = createRoute({
   component: NotificationsPage,
 })
 
+// Login route
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: LoginPage,
+})
+
+// Register route
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/register',
+  component: RegisterPage,
+})
+
 // Create the router with all routes
 export const routeTree = rootRoute.addChildren([
   dashboardRoute,
@@ -95,6 +111,8 @@ export const routeTree = rootRoute.addChildren([
   accountRoute,
   billingRoute,
   notificationsRoute,
+  loginRoute,
+  registerRoute,
 ])
 
 export const router = createRouter({ routeTree })

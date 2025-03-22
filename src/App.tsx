@@ -13,10 +13,13 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { RouterProvider, Outlet, useLocation, Link } from '@tanstack/react-router'
 import { router } from "@/routes"
+import { AuthProvider, useAuth } from "@/lib/auth-context"
 
 function AppContent() {
   const location = useLocation()
   const pathname = location.pathname
+  const { isLoggedIn } = useAuth()
+  const isAuthPage = pathname === '/login' || pathname === '/register'
   
   // Generate breadcrumb items based on the current path
   const generateBreadcrumbs = () => {
@@ -51,12 +54,22 @@ function AppContent() {
     })
   }
   
+  // If user is not logged in and on an auth page (login/register), show only the content without layout
+  if (!isLoggedIn && isAuthPage) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <Outlet />
+      </div>
+    )
+  }
+  
+  // For authenticated users or attempts to access protected routes while not logged in
   return (
     <div>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4 border-b">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 max-h-4" />
             <Breadcrumb>
@@ -94,6 +107,8 @@ function AppContent() {
 
 export default function App() {
   return (
-    <RouterProvider router={router} defaultComponent={AppContent} />
+    <AuthProvider>
+      <RouterProvider router={router} defaultComponent={AppContent} />
+    </AuthProvider>
   )
 }

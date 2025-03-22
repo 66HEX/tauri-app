@@ -178,43 +178,43 @@ export function DashboardPage() {
 
   return (
     <div className="overflow-auto">
-      {/* Page Header with Title and Time Range Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Overview of your training business and client activity
-          </p>
-        </div>
-        <div className="flex items-center space-x-2 mt-4 lg:mt-0">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={timeRange === 'week' ? 'bg-muted' : ''} 
-            onClick={() => setTimeRange('week')}
-          >
-            Week
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={timeRange === 'month' ? 'bg-muted' : ''} 
-            onClick={() => setTimeRange('month')}
-          >
-            Month
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={timeRange === 'year' ? 'bg-muted' : ''} 
-            onClick={() => setTimeRange('year')}
-          >
-            Year
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-4">
+      <Card>
+        <CardHeader>
+          <div className='flex flex-row justify-between'>
+            <div className="flex flex-col gap-2">
+              <CardTitle>Dashboard</CardTitle>
+              <CardDescription>Overview of your training business and client activity</CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className={timeRange === 'week' ? 'bg-muted' : ''} 
+                onClick={() => setTimeRange('week')}
+              >
+                Week
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className={timeRange === 'month' ? 'bg-muted' : ''} 
+                onClick={() => setTimeRange('month')}
+              >
+                Month
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className={timeRange === 'year' ? 'bg-muted' : ''} 
+                onClick={() => setTimeRange('year')}
+              >
+                Year
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
         {/* First Row: Quick Stats + Today's Schedule */}
         <div className="grid gap-4 md:grid-cols-3">
           {/* Quick Stats Summary - Left Column */}
@@ -424,6 +424,8 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
